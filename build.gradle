@@ -1,0 +1,284 @@
+apply plugin: 'com.android.application'
+apply plugin: 'com.neenbedankt.android-apt'
+apply plugin: 'com.dodola.rocoofix'
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.3"
+    //默认版本号和版本名
+    def DEF_VERSION_CODE = 6
+    def DEF_VERSION_NAME = "1.1.1"
+
+     //正式环境
+    def API_RELEASE_HOST = "\"http://release.api.cn\""
+    //预发环境
+    def API_PRE_RELEASE_HOST = "\"http://pre.api.cn\""
+    //测试环境
+    def API_TEST_HOST = "\"http://test.api.cn\""
+    //开发环境
+    def API_DEV_HOST = "\"http://dev.api.cn\""
+
+    //测试环境个推配置
+    def TEST_GETUI_APP_ID = "GFB737T90C8UnQRqf1A0a3"
+    def TEST_GETUI_APP_KEY = "Snwyad2aql8R1vKBEl8T24"
+    def TEST_GETUI_APP_SECRET = "lmUFBXElh47OnJOuBczFu2"
+
+    //正式环境个推配置
+    def RELEASE_GETUI_APP_ID = "FRYUSD40ee67iAKmMXKqYA"
+    def RELEASE_GETUI_APP_KEY = "wSdNyU8ddf5Y60ZHE8OFp"
+    def RELEASE_GETUI_APP_SECRET = "34IyyT1WM06ZSJPFPyirT3"
+
+    //测试环境TalkingData配置
+    def TEST_TALKING_DATA_APP_ID = "7E5389EAD0C2324FB7B379701F6D2BA0"
+    //正式环境TalkingData配置
+    def RELEASE_TALKING_DATA_APP_ID = "23F3823SD0C2324F31B379701F6D2BA0"
+
+    defaultConfig {
+        applicationId "com.ixwork"
+        minSdkVersion 15
+        targetSdkVersion 23
+        versionCode project.hasProperty('VERSION_CODE') ? Integer.parseInt(VERSION_CODE) : DEF_VERSION_CODE
+        versionName project.hasProperty('VERSION_NAME') ? VERSION_NAME : "${DEF_VERSION_NAME}"
+        println("versionCode = " + versionCode + " versionName = " + versionName)
+        buildConfigField("String", "API_HOST", "${API_DEV_HOST}")
+        manifestPlaceholders = [
+                /*  个推测试环境   */
+                GETUI_APP_ID       : "${TEST_GETUI_APP_ID}",
+                GETUI_APP_KEY      : "${TEST_GETUI_APP_KEY}",
+                GETUI_APP_SECRET   : "${TEST_GETUI_APP_SECRET}",
+                /* talkingData 测试环境 */
+                TALKING_DATA_APP_ID: "${TEST_TALKING_DATA_APP_ID}",
+                PACKAGE_NAME       : applicationId
+        ]
+
+        ndk {
+            abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "mips", "mips64", "x86", "x86_64"
+        }
+
+        // dex突破65535的限制
+        multiDexEnabled true
+
+/*        jackOptions {
+            enabled true
+        }*/
+    }
+    signingConfigs {
+        release {
+            storeFile file('cgtz_release.jks')
+            storePassword "Y1r70C#4ie"
+            keyAlias "ixwork"
+            keyPassword "Qy2*S&u6Pc"
+        }
+        debug {
+            storeFile file('cgtz_debug.jks')
+        }
+    }
+    lintOptions {
+        abortOnError false
+        disable 'InconsistentArrays', 'DefaultLocale', 'OldTargetApi', 'GradleOverrides', 'MissingTranslation', 'UnusedResources', 'GoogleAppIndexingWarning'
+    }
+
+    buildTypes {
+        /* 线上环境 */
+        release {
+            // 不显示Log
+            buildConfigField "boolean", "LOG_DEBUG", "false"
+            buildConfigField "String", "API_HOST", "${API_RELEASE_HOST}"//API Host
+            manifestPlaceholders = [
+                    /*  release 环境  */
+                    GETUI_APP_ID       : "${RELEASE_GETUI_APP_ID}",
+                    GETUI_APP_KEY      : "${RELEASE_GETUI_APP_KEY}",
+                    GETUI_APP_SECRET   : "${RELEASE_GETUI_APP_SECRET}",
+                    /* talkingData release 环境 */
+                    TALKING_DATA_APP_ID: "${RELEASE_TALKING_DATA_APP_ID}",
+                    PACKAGE_NAME       : defaultConfig.applicationId
+            ]
+            minifyEnabled true //是否混淆
+            //是否设置zip对齐优化
+            zipAlignEnabled true
+            // 移除无用的resource文件
+            shrinkResources true
+            //签名
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        /* 预发环境 */
+        preRelease {
+            // 不显示Log
+            buildConfigField "boolean", "LOG_DEBUG", "false"
+            buildConfigField "String", "API_HOST", "${API_PRE_RELEASE_HOST}"//API Host
+            manifestPlaceholders = [
+                    /*  release 环境  */
+                    GETUI_APP_ID       : "${RELEASE_GETUI_APP_ID}",
+                    GETUI_APP_KEY      : "${RELEASE_GETUI_APP_KEY}",
+                    GETUI_APP_SECRET   : "${RELEASE_GETUI_APP_SECRET}",
+                    /* talkingData release 环境 */
+                    TALKING_DATA_APP_ID: "${RELEASE_TALKING_DATA_APP_ID}",
+                    PACKAGE_NAME       : defaultConfig.applicationId
+            ]
+            minifyEnabled true //是否混淆
+            //是否设置zip对齐优化
+            zipAlignEnabled true
+            // 移除无用的resource文件
+            shrinkResources true
+            //签名
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        /* 本地开发环境 */
+        debug {
+            minifyEnabled false
+        }
+
+        /* 测试环境 */
+        beta {
+            // 显示Log
+            buildConfigField "boolean", "LOG_DEBUG", "true"
+            buildConfigField "String", "API_HOST", "${API_TEST_HOST}"//API Host
+            manifestPlaceholders = [
+                    /*  个推测试环境   */
+                    GETUI_APP_ID       : "${TEST_GETUI_APP_ID}",
+                    GETUI_APP_KEY      : "${TEST_GETUI_APP_KEY}",
+                    GETUI_APP_SECRET   : "${TEST_GETUI_APP_SECRET}",
+                    /* talkingData 测试环境 */
+                    TALKING_DATA_APP_ID: "${TEST_TALKING_DATA_APP_ID}",
+                    PACKAGE_NAME       : defaultConfig.applicationId
+            ]
+            minifyEnabled true //是否混淆
+            //是否设置zip对齐优化
+            zipAlignEnabled true
+            // 移除无用的resource文件
+            shrinkResources true
+            //签名
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    //修改生成的最终文件名
+    applicationVariants.all { variant ->
+        variant.outputs.each { output ->
+            def outputFile = output.outputFile
+            if (outputFile != null && outputFile.name.endsWith('.apk')) {
+                File outputDirectory = new File(project.hasProperty('OUT_PUT_DIR') ? OUT_PUT_DIR : outputFile.parent);
+                def fileName
+                if(!project.hasProperty('FILE_NAME')){
+                    if (variant.buildType.name == "release" || variant.buildType.name == "preRelease") {
+                        // 输出apk名称为app_v1.0.0_2015-06-15_playStore.apk
+                        fileName = "app_v${defaultConfig.versionName}_${releaseTime()}_${variant.productFlavors[0].name}_${variant.buildType.name}.apk"
+                    } else if (variant.buildType.name == "beta") {
+                        fileName = "app_v${defaultConfig.versionName}_${releaseTime()}_${variant.buildType.name}.apk"
+                    } else {
+                        fileName = outputFile.name
+                    }
+                }else{
+                    fileName = FILE_NAME
+                }
+//                println("输出apk ---> " + outputDirectory.absolutePath + File.separator + outputFile.name)
+                output.outputFile = new File(outputDirectory, fileName)
+            }
+        }
+    }
+
+    productFlavors {
+        "安智" {}
+        "搜狗" {}
+        "华为市场" {}
+        "小米市场" {}
+        "豌豆荚" {}
+        "安卓市场" {}
+        "百度手机助手" {}
+        "91手机助手" {}
+        "淘宝手机助手" {}
+        "360" {}
+        "魅族" {}
+        "应用宝" {}
+        "联想乐商店" {}
+        "金立" {}
+        "机锋" {}
+        "应用汇" {}
+        "木蚂蚁" {}
+        "N多" {}
+        "oppo" {}
+        "海信应用商店" {}
+        "应用贝" {}
+        "联通沃商店" {}
+        "优亿" {}
+    }
+
+    productFlavors.all {
+        flavor -> flavor.manifestPlaceholders = [ONEAPM_TEST_CHANNEL: name]
+    }
+
+/*    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }*/
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+    apt 'com.jakewharton:butterknife-compiler:8.0.1'
+    apt 'org.greenrobot:eventbus-annotation-processor:3.0.1'
+    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
+    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'
+    preReleaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'
+    betaCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'
+    compile fileTree(include: '*.jar', dir: 'libs')
+    compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.alibaba:fastjson:1.2.12'
+    compile 'com.android.support:recyclerview-v7:23.4.0'
+    compile 'com.android.support:support-v4:23.4.0'
+    compile 'com.zhy:okhttputils:2.6.1'
+    compile 'com.nineoldandroids:library:2.4.0'
+    compile 'com.flyco.banner:FlycoBanner_Lib:2.0.2@aar'
+    compile 'com.github.orangegangsters:swipy:1.2.2@aar'
+    compile 'com.getui:sdk:2.9.0.0'
+    compile 'com.facebook.fresco:fresco:0.11.0'
+    compile 'com.facebook.fresco:imagepipeline-okhttp:0.11.0'
+    compile 'com.jakewharton:butterknife:8.0.1'
+    compile 'com.bigkoo:pickerview:2.0.8'
+    compile 'org.greenrobot:eventbus:3.0.0'
+    compile 'com.commit451:PhotoView:1.2.4'
+    compile 'com.isseiaoki:simplecropview:1.0.13'
+    compile 'com.yongchun:com.yongchun.imageselector:1.1.0'
+    compile 'com.github.bumptech.glide:glide:3.7.0'
+    compile 'com.google.zxing:core:3.2.1'
+    compile 'pub.devrel:easypermissions:0.1.9'
+    compile 'com.witown.opensdk:open-sdk:1.0'
+    compile 'jp.wasabeef:richeditor-android:1.2.0'
+    compile 'com.zzhoujay.richtext:richtext:1.1.6'
+    compile 'com.android.support:design:23.4.0'
+    compile 'com.android.support:multidex:1.0.1'
+    compile 'com.dodola:rocoo:1.1'
+}
+
+apt {
+    arguments {
+        eventBusIndex "com.ixwork.MyEventBusIndex"
+    }
+}
+
+def releaseTime() {
+    return new Date().format("yyyy-MM-dd_HH:mm:ss", TimeZone.getTimeZone("GMT+08:00"))
+}
+
+rocoo_fix {
+    includePackage = ['com/ixwork']//指定将来可能需要制作补丁的package(就是指定插庄的范围)
+//    excludeClass = ['BaseApplication.class']//将不需要加到patch里的类写在这里(不需要插庄的类)
+
+//    preVersionPath = '5'//注意：此项属性只在需要制作补丁的时候才需开启！！如果不需要制作补丁则需要去掉此项
+
+    enable = true//注意：关掉此项会无法生成Hash.txt文件
+
+    scanref=true//默认为 false，开启这个选项会将与补丁 class 相引用的 class 都打入包中来解决 ART 虚拟机崩溃问题，功能 Beta 中
+}
+
